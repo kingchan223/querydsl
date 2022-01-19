@@ -1,5 +1,6 @@
 package study.querydsl;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ExpressionUtils;
@@ -540,7 +541,7 @@ public class QuerydslBasicTest {
     @Test
     void findDtoByQueryProjection() {
         List<MemberDto> result = queryFactory
-                .select(new QMemberDto(member.username, member.age, member,id))//컴파일 에러 발생
+                .select(new QMemberDto(member.username, member.age))//컴파일 에러 발생
                 .from(member)
                 .fetch();
         for (MemberDto memberDto : result) System.out.println("memberDto = " + memberDto);
@@ -551,6 +552,25 @@ public class QuerydslBasicTest {
         List<String> result = queryFactory
                 .select(member.username).distinct()
                 .from(member)
+                .fetch();
+    }
+
+    @Test
+    void dynamicQuery_BooleanBuilder() {
+        String usernameParam = null;
+        Integer ageParam = 10;
+        List<Member> result = searchMember1(usernameParam, ageParam);
+//        assertThat(result.size()).isEqualTo(1);
+    }
+
+    private List<Member> searchMember1(String usernameCond, Integer ageCond) {
+        BooleanBuilder builder = new BooleanBuilder();
+        if(usernameCond!=null) builder.and(member.username.eq(usernameCond));
+        if(ageCond!=null) builder.and(member.age.eq(ageCond));
+
+        return queryFactory
+                .selectFrom(member)
+                .where(builder)
                 .fetch();
     }
 }
