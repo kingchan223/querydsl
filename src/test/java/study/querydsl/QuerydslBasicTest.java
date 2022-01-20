@@ -9,12 +9,14 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
 import study.querydsl.dto.QMemberDto;
@@ -603,4 +605,61 @@ public class QuerydslBasicTest {
     //광고 상태 isValid, 날짜가 In --> isServiceable 이런 곳에 사용가능
 
 
+    //수정
+    @Test
+    void bulkUpdate() {
+        //count는 영향을 받은 회원 수
+        long count = queryFactory.update(member)
+                .set(member.username, "비회원")
+                .where(member.age.lt(28)).execute();
+
+        //영속성 컨텍스트 비우기
+        em.flush();
+        em.clear();
+    }
+
+    //더하기
+    @Test
+    void bulkAdd() {
+        queryFactory.update(member)
+                .set(member.age, member.age.add(1))
+                .execute();
+
+        //영속성 컨텍스트 비우기
+        em.flush();
+        em.clear();
+    }
+
+    //삭제
+    @Test
+    void bulkDelete() {
+        queryFactory.delete(member)
+                .where(member.age.gt(18))
+                .execute();
+
+        //영속성 컨텍스트 비우기
+        em.flush();
+        em.clear();
+    }
+
+    @Test
+    void sqlFunction() {
+        List<String> result = queryFactory
+                .select(Expressions.stringTemplate(
+                        "function('replace', {0}, {1}, {2})",
+                        member.username, "member", "M"))
+                .from(member)
+                .fetch();
+
+        for (String s : result) System.out.println("s = " + s);
+    }
+
+    @Test
+    void sqlFunctionLower() {
+        JPAQuery<String> result = queryFactory
+                .select(member.username)
+                .from(member)
+                .where(member.username.eq(Expressions.stringTemplate("function('lower', {0})",
+                        member.username)));
+    }
 }
