@@ -108,7 +108,7 @@ class MemberJpaReposiotoryTest {
         em.persist(member3);
         em.persist(member4);
 
-        // -- 컨티션 --//
+        // -- 컨디션 --//
         MemberSearchCondition condition = new MemberSearchCondition();
         condition.setAgeGoe(15);
         condition.setAgeLoe(35); // -> 15~35살
@@ -117,6 +117,37 @@ class MemberJpaReposiotoryTest {
         // -----------
 
         List<MemberTeamDto> result = repository.searchByBuilder(condition);
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0).getUsername()).isEqualTo("member4");
+    }
+
+    @Test
+    public void searchTest2(){
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        em.persist(teamA);
+        em.persist(teamB);
+
+        Member member1 = new Member("member1", 10, teamA);
+        Member member2 = new Member("member2", 20, teamA);
+        Member member3 = new Member("member3", 10, teamB);
+        Member member4 = new Member("member4", 20, teamB);
+        Member member5 = new Member("member5", 55, teamB);
+        em.persist(member5);
+        em.persist(member1);
+        em.persist(member2);
+        em.persist(member3);
+        em.persist(member4);
+
+        // -- 컨디션 --//
+        MemberSearchCondition condition = new MemberSearchCondition();
+        condition.setAgeGoe(15);
+        condition.setAgeLoe(35); // -> 15~35살
+        condition.setTeamName("teamB"); // teamName은 teamB이어야 한다.
+        //username 컨디션은 추가하지 않음. 즉 username은 어찌되어도 상관없다는 것이다.
+        // -----------
+
+        List<MemberTeamDto> result = repository.search(condition);
         assertThat(result.size()).isEqualTo(1);
         assertThat(result.get(0).getUsername()).isEqualTo("member4");
     }
